@@ -137,7 +137,8 @@ def _count_syllables(word):
         return total
     return 0
 
-def get_response(sentence, length=None):
+def get_response(sentence, length=None, start_word=None):
+    
     tokens = _tokenize(sentence)
     tagged_words = _pos_tag(tokens)
     nouns = _get_nouns(tagged_words)
@@ -149,18 +150,23 @@ def get_response(sentence, length=None):
         for word in not_punc_sentence:
             length += _count_syllables(word)
     print length
-    last_word = not_punc_sentence.pop()
+    
+    if start_word is not None:
+        next_word = start_word
+    else:
+        last_word = not_punc_sentence.pop()
 
-    rhymes = _get_rhymes(last_word, _select_rhyme(uniform=False), topics=nouns)
-    if len(rhymes) == 0:
-        rhymes = _get_related_word(nouns)
-    # print rhymes
-    top_n = _get_top_n(rhymes)
-    rhyming_words = _normalize_words(top_n)
-    words = [word[0] for word in rhyming_words]
-    p = [word[1] for word in rhyming_words]
+        rhymes = _get_rhymes(last_word, _select_rhyme(uniform=False), topics=nouns)
+        if len(rhymes) == 0:
+            rhymes = _get_related_word(nouns)
+        # print rhymes
+        top_n = _get_top_n(rhymes)
+        rhyming_words = _normalize_words(top_n)
+        words = [word[0] for word in rhyming_words]
+        p = [word[1] for word in rhyming_words]
 
-    next_word = _choose_word(words, p)
+        next_word = _choose_word(words, p)
+    
     syllables = _count_syllables(next_word)
 
     response = [next_word]

@@ -9,7 +9,11 @@ def get_response(sentence):
         length = int(request.args.get('length').strip())
     else:
         length=None
-    return perplex.get_response(sentence, length=length)
+    if 'start_word' in request.args:
+        start_word = request.args.get('start_word').strip()
+    else:
+        start_word = None
+    return perplex.get_response(sentence, length=length, start_word=start_word)
 
 if __name__ == '__main__':
     app.run(debug=True)
