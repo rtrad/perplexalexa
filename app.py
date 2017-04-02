@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return 'try going to /respond/<your sentence here>, to get a rhyming sentence'
+    return 'try going to /respond/<your sentence here> to get a rhyming sentence'
 
 @app.route('/respond/<string:sentence>', methods = ['GET'])
 def get_response(sentence):
