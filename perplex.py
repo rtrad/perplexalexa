@@ -149,8 +149,8 @@ def get_response(sentence, length=None, start_word=None):
         length = 0
         for word in not_punc_sentence:
             length += _count_syllables(word)
-    if length > 10:
-        length = 10
+    if length > 7:
+        length = 7
     
     if start_word is not None:
         next_word = start_word
