@@ -122,10 +122,17 @@ def _get_preceding_word(word, rhyme=None, rhyme_weight = 10):
     return preceding_words
 
 def _count_syllables(word):
-    lowercase = word.lower()
-    if lowercase in cmud:
-        return max([len([y for y in x if y[-1].isdigit()]) for x in cmud[lowercase]])
-    return 0
+    if word.count(' ') > 0:
+        total = 0
+        for n in word.split(' '):
+            lowercase = n.lower()
+            if lowercase in cmud:
+                total += max([len([y for y in x if y[-1].isdigit()]) for x in cmud[lowercase]])
+        return total
+    else:
+        lowercase = word.lower()
+        if lowercase in cmud:
+            return max([len([y for y in x if y[-1].isdigit()]) for x in cmud[lowercase]])
 
 def get_response(sentence, length=None):
     tokens = _tokenize(sentence)
@@ -137,6 +144,7 @@ def get_response(sentence, length=None):
         length = 0
         for word in not_punc_sentence:
             length += _count_syllables(word)
+    print length
     last_word = not_punc_sentence.pop()
 
     rhymes = _get_rhymes(last_word, nouns)
@@ -150,6 +158,7 @@ def get_response(sentence, length=None):
 
     next_word = _choose_word(words, p)
     syllables = _count_syllables(next_word)
+
     response = [next_word]
     while syllables < length:
         if not_punc_sentence:
