@@ -51,22 +51,26 @@ def _get_rhymes(input_word, rhyme_type, topics=None, repeat=False):
         payload = {'rel_rhy' : input_word}
         if topics is not None:
             payload['topics'] = ','.join(topics)
-        rhymes = requests.get(datamuse_url, params=payload).json()
-        all_rhymes.extend([word for word in rhymes if 'score' in word and word['score'] > 0])
+        try: 
+            rhymes = requests.get(datamuse_url, params=payload).json()
+            all_rhymes.extend([word for word in rhymes if 'score' in word and word['score'] > 0])
+            
 
     elif rhyme_type == 1:
         payload = {'rel_nry' : input_word}
         if topics is not None:
             payload['topics'] = ','.join(topics)
-        slant = requests.get(datamuse_url, params=payload).json()
-        all_rhymes.extend([word for word in slant if 'score' in word and word['score'] > 0])
+        try:
+            slant = requests.get(datamuse_url, params=payload).json()
+            all_rhymes.extend([word for word in slant if 'score' in word and word['score'] > 0])
 
     elif rhyme_type == 2:
         payload = {'rel_hom' : input_word}
         if topics is not None:
             payload['topics'] = ','.join(topics)
-        homophones = requests.get(datamuse_url, params=payload).json()
-        all_rhymes.extend([word for word in homophones if 'score' in word and word['score'] > 0])
+        try:
+            homophones = requests.get(datamuse_url, params=payload).json()
+            all_rhymes.extend([word for word in homophones if 'score' in word and word['score'] > 0])
 
     if len(all_rhymes) == 0 and topics is not None and not repeat:
         if rhyme_type == 0:
@@ -149,8 +153,8 @@ def get_response(sentence, length=None, start_word=None):
         length = 0
         for word in not_punc_sentence:
             length += _count_syllables(word)
-    if length > 7:
-        length = 7
+    if length > 15:
+        length = 15
     
     if start_word is not None:
         next_word = start_word
