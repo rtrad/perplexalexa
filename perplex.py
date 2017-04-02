@@ -22,7 +22,7 @@ def _pos_tag(tokens):
 def _get_top_n(words, n=20):
     # print words
     top_n = sorted(words, key=lambda x: x['score'], reverse=True)
-    
+
     return top_n[:n]
 
 def _get_rhymes(word, topics=None):
@@ -67,24 +67,37 @@ def _get_preceding_word(word, rhyme=None):
     if not rhyme is None:
         payload = {'rel_rhy' : rhyme, 'rel_bgb' : word}
         rhymes = requests.get(datamuse_url, params=payload).json()
-        preceding_words.extend([a for a in rhymes if 'score' in a])
+        for rhyme_word in rhymes:
+            if 'score' in rhyme_word:
+                rhyme_word['score'] *= 2
+                preceding_words.append(rhyme_word)
 
         payload = {'rel_nry' : rhyme, 'rel_bgb' : word}
         slant = requests.get(datamuse_url, params=payload).json()
-        preceding_words.extend([a for a in slant if 'score' in a])
+        for slant_word in slant:
+            if 'score' in slant_word:
+                slant_word['score'] *= 2
+                preceding_words.append(slant_word)
 
         payload = {'rel_hom' : rhyme, 'rel_bgb' : word}
         homophones = requests.get(datamuse_url, params=payload).json()
-        preceding_words.extend([a for a in homophones if 'score' in a])
+        for homo_word in homophones:
+            if 'score' in rhyme_word:
+                homo_word['score'] *= 2
+                preceding_words.append(homo_word)
 
         payload = {'rel_cns' : rhyme, 'rel_bgb' : word}
         consonants = requests.get(datamuse_url, params=payload).json()
-        preceding_words.extend([a for a in consonants if 'score' in a])
-    if len(preceding_words) == 0:
-        payload = {'rel_bgb' : word}
-        preceding_words = requests.get(datamuse_url, params=payload).json()
-    print preceding_words
-    
+        for cns_word in rhymes:
+            if 'score' in rhyme_word:
+                cns_word['score'] *= 2
+                preceding_words.append(cns_word)
+
+
+    payload = {'rel_bgb' : word}
+    preceding_words.extend(requests.get(datamuse_url, params=payload).json())
+    #print preceding_words
+
     return preceding_words
 
 def get_response(sentence, length=8):
