@@ -16,4 +16,4 @@ def get_response(sentence):
     return perplex.get_response(sentence, length=length, start_word=start_word)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
