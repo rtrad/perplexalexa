@@ -6,6 +6,7 @@ from config import *
 import numpy as np
 
 
+
 def _get_nouns(tagged_words):
     nouns = [word for word, pos in tagged_words if pos[:2] == 'NN']
     if len(nouns) > 0:
@@ -103,13 +104,23 @@ def _get_preceding_word(word, rhyme=None, rhyme_weight = 10):
 
     return preceding_words
 
-def get_response(sentence, length=8):
+def _count_syllables(word):
+    lowercase = word.lower()
+    if lowercase in cmud:
+        return = max([len([y for y in x if y[-1].isdigit()]) for x in cmud[lowercase]])
+    return 0
+
+def get_response(sentence, length=None):
     tokens = _tokenize(sentence)
     tagged_words = _pos_tag(tokens)
     nouns = _get_nouns(tagged_words)
+    not_punc_sentence = [word for (word, pos) in tagged_words if pos[0].isalpha()]
+    
+    if length is None:
+        length = 0
+        for word in not_punc_sentence:
+            length += count_syllables(word)
 
-    not_punc_sentence = [word for (word, pos) in tagged_words if pos.isalpha()]
-    # print not_punc_sentence
     last_word = not_punc_sentence.pop()
 
     rhymes = _get_rhymes(last_word, nouns)
@@ -119,9 +130,10 @@ def get_response(sentence, length=8):
     words = [word[0] for word in rhyming_words]
     p = [word[1] for word in rhyming_words]
 
-    response = [_choose_word(words, p)]
-    for i in range(0,length):
-        print response
+    next_word = _choose_word(words, p)
+    syllables = count_syllables(next_word)
+    response = [next_word]
+    while syllables < length:
         if not_punc_sentence:
             word_to_rhyme = not_punc_sentence.pop()
         else:
@@ -131,6 +143,8 @@ def get_response(sentence, length=8):
         words = [word[0] for word in preceding_words]
         p = [word[1] for word in preceding_words]
 
-        response.insert(0, _choose_word(words, p))
+        next_word = _choose_word(words, p)
+        syllables += count_syllables(next_word)
+        response.insert(0, next_word)
 
     return ' '.join(response)
