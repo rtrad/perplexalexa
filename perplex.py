@@ -1,6 +1,5 @@
 import requests
 import nltk
-import enchant
 from random_words import RandomWords
 from config import *
 import numpy as np
