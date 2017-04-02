@@ -20,7 +20,10 @@ def _pos_tag(tokens):
     return nltk.pos_tag(tokens)
 
 def _get_top_n(words, n=20):
-    return sorted(words, key=lambda x: x['score'], reverse=True)[:n]
+    # print words
+    top_n = sorted(words, key=lambda x: x['score'], reverse=True)
+    
+    return top_n[:n]
 
 def _get_rhymes(word, topics=None):
     all_rhymes = []
@@ -48,7 +51,6 @@ def _get_rhymes(word, topics=None):
         payload['topics'] = ','.join(topics)
     consonants = requests.get(datamuse_url, params=payload).json()
     all_rhymes.extend([word for word in consonants if 'score' in word])
-    # print top_n
     return all_rhymes
 
 def _normalize_words(words):
@@ -57,32 +59,32 @@ def _normalize_words(words):
     return normalized_list
 
 def _choose_word(words, p):
-    return np.random.choice(words, size=1, p=p)
+    return np.random.choice(words, size=1, p=p).tolist()[0]
 
 def _get_preceding_word(word, rhyme=None):
     preceding_words = []
 
-    if not rhymes is None:
-        payload = {'rel_rhy' : word, 'rel_bgb' : rhyme}
+    if not rhyme is None:
+        payload = {'rel_rhy' : rhyme, 'rel_bgb' : word}
         rhymes = requests.get(datamuse_url, params=payload).json()
-        preceding_words.extend([word for word in rhymes if 'score' in word])
+        preceding_words.extend([a for a in rhymes if 'score' in a])
 
-        payload = {'rel_nry' : word, 'rel_bgb' : rhyme}
+        payload = {'rel_nry' : rhyme, 'rel_bgb' : word}
         slant = requests.get(datamuse_url, params=payload).json()
-        preceding_words.extend([word for word in slant if 'score' in word])
+        preceding_words.extend([a for a in slant if 'score' in a])
 
-        payload = {'rel_hom' : word, 'rel_bgb' : rhyme}
+        payload = {'rel_hom' : rhyme, 'rel_bgb' : word}
         homophones = requests.get(datamuse_url, params=payload).json()
-        preceding_words.extend([word for word in homophones if 'score' in word])
+        preceding_words.extend([a for a in homophones if 'score' in a])
 
-        payload = {'rel_cns' : word, 'rel_bgb' : rhyme}
+        payload = {'rel_cns' : rhyme, 'rel_bgb' : word}
         consonants = requests.get(datamuse_url, params=payload).json()
-        preceding_words.extend([word for word in consonants if 'score' in word])
-
+        preceding_words.extend([a for a in consonants if 'score' in a])
     if len(preceding_words) == 0:
         payload = {'rel_bgb' : word}
-        preceding_words = requests.get(datamuse_url, params=payload).json
-
+        preceding_words = requests.get(datamuse_url, params=payload).json()
+    print preceding_words
+    
     return preceding_words
 
 def get_response(sentence, length=8):
@@ -90,17 +92,25 @@ def get_response(sentence, length=8):
     tagged_words = _pos_tag(tokens)
     nouns = _get_nouns(tagged_words)
 
-    not_punc_sentence = [(word, pos) for (word, pos) in tagged_words if pos.isalpha()]
+    not_punc_sentence = [word for (word, pos) in tagged_words if pos.isalpha()]
+    # print not_punc_sentence
     last_word = not_punc_sentence.pop()
 
-    top_n = _get_top_n(_get_rhymes(last_word, nouns))
+    rhymes = _get_rhymes(last_word, nouns)
+    # print rhymes
+    top_n = _get_top_n(rhymes)
     rhyming_words = _normalize_words(top_n)
     words = [word[0] for word in rhyming_words]
     p = [word[1] for word in rhyming_words]
 
     response = [_choose_word(words, p)]
     for i in range(0,length):
-        top_n = _get_top_n(_get_preceding_word(response[0], not_punc_sentence.pop()))
+        print response
+        if not_punc_sentence:
+            word_to_rhyme = not_punc_sentence.pop()
+        else:
+            word_to_rhyme = None
+        top_n = _get_top_n(_get_preceding_word(response[0], word_to_rhyme))
         preceding_words = _normalize_words(top_n)
         words = [word[0] for word in preceding_words]
         p = [word[1] for word in preceding_words]
