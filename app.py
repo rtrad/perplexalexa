@@ -8,7 +8,7 @@ def get_response(sentence):
     if 'length' in request.args:
         length = int(request.args.get('length').strip())
     else:
-        length=sentence.count(' ')
+        length=None
     return perplex.get_response(sentence, length=length)
 
 if __name__ == '__main__':
