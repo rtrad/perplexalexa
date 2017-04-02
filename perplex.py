@@ -26,6 +26,15 @@ def _get_top_n(words, n=20):
 
     return top_n[:n]
 
+def _get_related_word(sentence):
+    nouns = _get_nouns(sentence)
+    if len(nouns) == 0:
+        nouns = RandomWords().random_word()
+
+    noun = np.random.choice(nouns, size=1).tolist()[0]
+    payload = {'rel_trg' : noun}
+    return requests.get(datamuse_url, payload)
+
 def _get_rhymes(word, topics=None):
     all_rhymes = []
 
@@ -59,7 +68,9 @@ def _normalize_words(words):
     normalized_list = [(word['word'], int(word['score'])/total) for word in words]
     return normalized_list
 
-def _choose_word(words, p):
+def _choose_word(words, p, sentence):
+    if len(words) == 0:
+        words = _get_related_word(sentence)
     return np.random.choice(words, size=1, p=p).tolist()[0]
 
 def _get_preceding_word(word, rhyme=None, rhyme_weight = 10):
