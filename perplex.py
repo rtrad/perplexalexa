@@ -37,7 +37,7 @@ def _get_related_word(nouns):
     if len(nouns) == 0:
         nouns = [RandomWords().random_word()]
     noun = np.random.choice(nouns, size=1).tolist()[0]
-    payload = {'rel_trg' : noun}
+    payload = {'rel_trg' : noun, 'k':'perplexalexa'}
     related_words = requests.get(datamuse_url, payload).json()
     related_words = [word for word in related_words if 'score' in word and word['score'] > 0]
     if len(related_words) == 0:
@@ -48,7 +48,7 @@ def _get_rhymes(input_word, rhyme_type, topics=None, repeat=False):
     all_rhymes = []
 
     if rhyme_type == 0:
-        payload = {'rel_rhy' : input_word}
+        payload = {'rel_rhy' : input_word, 'k':'perplexalexa'}
         if topics is not None:
             payload['topics'] = ','.join(topics)
         rhymes = requests.get(datamuse_url, params=payload).json()
@@ -56,14 +56,14 @@ def _get_rhymes(input_word, rhyme_type, topics=None, repeat=False):
             
 
     elif rhyme_type == 1:
-        payload = {'rel_nry' : input_word}
+        payload = {'rel_nry' : input_word, 'k':'perplexalexa'}
         if topics is not None:
             payload['topics'] = ','.join(topics)
         slant = requests.get(datamuse_url, params=payload).json()
         all_rhymes.extend([word for word in slant if 'score' in word and word['score'] > 0])
 
     elif rhyme_type == 2:
-        payload = {'rel_hom' : input_word}
+        payload = {'rel_hom' : input_word, 'k':'perplexalexa'}
         if topics is not None:
             payload['topics'] = ','.join(topics)
         homophones = requests.get(datamuse_url, params=payload).json()
@@ -91,28 +91,28 @@ def _get_preceding_word(word, rhyme_type, rhyme=None, rhyme_weight = 10):
 
     if not rhyme is None:
         if rhyme_type == 0:
-            payload = {'rel_rhy' : rhyme, 'rel_bgb' : word}
+            payload = {'rel_rhy' : rhyme, 'rel_bgb' : word, 'k':'perplexalexa'}
             rhymes = requests.get(datamuse_url, params=payload).json()
             for rhyme_word in rhymes:
                 if 'score' in rhyme_word and rhyme_word['score'] > 0:
                     rhyme_word['score'] *= rhyme_weight
                     preceding_words.append(rhyme_word)
         elif rhyme_type == 1:
-            payload = {'rel_nry' : rhyme, 'rel_bgb' : word}
+            payload = {'rel_nry' : rhyme, 'rel_bgb' : word, 'k':'perplexalexa'}
             slant = requests.get(datamuse_url, params=payload).json()
             for slant_word in slant:
                 if 'score' in slant_word and slant_word['score'] > 0:
                     slant_word['score'] *= rhyme_weight
                     preceding_words.append(slant_word)
         elif rhyme_type == 2:
-            payload = {'rel_hom' : rhyme, 'rel_bgb' : word}
+            payload = {'rel_hom' : rhyme, 'rel_bgb' : word, 'k':'perplexalexa'}
             homophones = requests.get(datamuse_url, params=payload).json()
             for homo_word in homophones:
                 if 'score' in homo_word and homo_word['score'] > 0:
                     homo_word['score'] *= rhyme_weight
                     preceding_words.append(homo_word)
 
-    payload = {'rel_bgb' : word}
+    payload = {'rel_bgb' : word, 'k':'perplexalexa'}
     non_rhymes = requests.get(datamuse_url, params=payload).json()
 
     for non_rhyme in non_rhymes:
