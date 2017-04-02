@@ -32,25 +32,25 @@ def _get_rhymes(word, topics=None):
     if topics is not None:
         payload['topics'] = ','.join(topics)
     rhymes = requests.get(datamuse_url, params=payload).json()
-    all_rhymes.extend([word for word in rhymes if 'score' in word])
+    all_rhymes.extend([word for word in rhymes if 'score' in word and word['score'] > 0])
 
     payload = {'rel_nry' : word}
     if topics is not None:
         payload['topics'] = ','.join(topics)
     slant = requests.get(datamuse_url, params=payload).json()
-    all_rhymes.extend([word for word in slant if 'score' in word])
+    all_rhymes.extend([word for word in slant if 'score' in word and word['score'] > 0])
 
     payload = {'rel_hom' : word}
     if topics is not None:
         payload['topics'] = ','.join(topics)
     homophones = requests.get(datamuse_url, params=payload).json()
-    all_rhymes.extend([word for word in homophones if 'score' in word])
+    all_rhymes.extend([word for word in homophones if 'score' in word and word['score'] > 0])
 
     payload = {'rel_cns' : word}
     if topics is not None:
         payload['topics'] = ','.join(topics)
     consonants = requests.get(datamuse_url, params=payload).json()
-    all_rhymes.extend([word for word in consonants if 'score' in word])
+    all_rhymes.extend([word for word in consonants if 'score' in word and word['score'] > 0])
     return all_rhymes
 
 def _normalize_words(words):
@@ -61,41 +61,44 @@ def _normalize_words(words):
 def _choose_word(words, p):
     return np.random.choice(words, size=1, p=p).tolist()[0]
 
-def _get_preceding_word(word, rhyme=None):
+def _get_preceding_word(word, rhyme=None, rhyme_weight = 10):
     preceding_words = []
 
     if not rhyme is None:
         payload = {'rel_rhy' : rhyme, 'rel_bgb' : word}
         rhymes = requests.get(datamuse_url, params=payload).json()
         for rhyme_word in rhymes:
-            if 'score' in rhyme_word:
-                rhyme_word['score'] *= 2
+            if 'score' in rhyme_word and rhyme_word['score'] > 0:
+                rhyme_word['score'] *= rhyme_weight
                 preceding_words.append(rhyme_word)
 
         payload = {'rel_nry' : rhyme, 'rel_bgb' : word}
         slant = requests.get(datamuse_url, params=payload).json()
         for slant_word in slant:
-            if 'score' in slant_word:
-                slant_word['score'] *= 2
+            if 'score' in slant_word and slant_word['score'] > 0:
+                slant_word['score'] *= rhyme_weight
                 preceding_words.append(slant_word)
 
         payload = {'rel_hom' : rhyme, 'rel_bgb' : word}
         homophones = requests.get(datamuse_url, params=payload).json()
         for homo_word in homophones:
-            if 'score' in rhyme_word:
-                homo_word['score'] *= 2
+            if 'score' in homo_word and homo_word['score'] > 0:
+                homo_word['score'] *= rhyme_weight
                 preceding_words.append(homo_word)
 
         payload = {'rel_cns' : rhyme, 'rel_bgb' : word}
         consonants = requests.get(datamuse_url, params=payload).json()
         for cns_word in rhymes:
-            if 'score' in rhyme_word:
-                cns_word['score'] *= 2
+            if 'score' in cns_word and cns_word['score'] > 0:
+                cns_word['score'] *= rhyme_weight
                 preceding_words.append(cns_word)
 
 
     payload = {'rel_bgb' : word}
-    preceding_words.extend(requests.get(datamuse_url, params=payload).json())
+    non_rhymes = requests.get(datamuse_url, params=payload).json()
+    for non_rhyme in non_rhymes:
+        if 'score' in non_rhyme and non_rhyme['score'] > 0:
+            preceding_words.append(non_rhyme)
     #print preceding_words
 
     return preceding_words
